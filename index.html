@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+  <title>将棋手数カウントツール</title>
+</head>
+<body>
+  <h1>将棋手数カウントツール</h1>
+  <button id="addMove">手数追加</button>
+  <button id="reset">リセット</button>
+  <table>
+    <thead>
+      <tr>
+        <th>局数</th>
+        <th>手数</th>
+      </tr>
+    </thead>
+    <tbody id="movesTable">
+    </tbody>
+  </table>
+  <script>
+    const movesTable = document.getElementById('movesTable');
+    const addMoveButton = document.getElementById('addMove');
+    const resetButton = document.getElementById('reset');
+    const maxGames = 100;
+    let movesData = [];
+
+    function loadMovesData() {
+      const data = localStorage.getItem('movesData');
+      if (data) {
+        movesData = JSON.parse(data);
+      }
+    }
+
+    function saveMovesData() {
+      localStorage.setItem('movesData', JSON.stringify(movesData));
+    }
+
+    function displayMovesData() {
+      movesTable.innerHTML = '';
+      movesData.forEach((move, index) => {
+        const row = document.createElement('tr');
+        const gameNumberCell = document.createElement('td');
+        const moveCountCell = document.createElement('td');
+        gameNumberCell.textContent = index + 1;
+        moveCountCell.textContent = move;
+        row.appendChild(gameNumberCell);
+        row.appendChild(moveCountCell);
+        movesTable.appendChild(row);
+      });
+    }
+
+    function addMove() {
+      if (movesData.length < maxGames) {
+        movesData.push(1);
+        saveMovesData();
+        displayMovesData();
+      } else {
+        alert('最大局数に達しました。');
+      }
+    }
+
+    function reset() {
+      movesData = [];
+      saveMovesData();
+      displayMovesData();
+    }
+
+    addMoveButton.addEventListener('click', addMove);
+    resetButton.addEventListener('click', reset);
+
+    loadMovesData();
+    displayMovesData();
+  </script>
+</body>
+</html>
