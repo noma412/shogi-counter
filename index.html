@@ -20,12 +20,18 @@
       background-color: #f2f2f2;
     }
   </style>
-  <title>将棋手数カウントツール</title>
+  <title>リアルタイム将棋手数カウントツール</title>
 </head>
 <body>
-  <h1>将棋手数カウントツール</h1>
-  <button id="addMove">手数追加</button>
+  <h1>リアルタイム将棋手数カウントツール</h1>
+  <button id="addGame">局追加</button>
   <button id="reset">リセット</button>
+  <div>
+    <h2>現在の局の手数</h2>
+    <button id="decrease">-</button>
+    <span id="currentMoves">0</span>
+    <button id="increase">+</button>
+  </div>
   <table>
     <thead>
       <tr>
@@ -38,10 +44,14 @@
   </table>
   <script>
     const movesTable = document.getElementById('movesTable');
-    const addMoveButton = document.getElementById('addMove');
+    const addGameButton = document.getElementById('addGame');
     const resetButton = document.getElementById('reset');
+    const decreaseButton = document.getElementById('decrease');
+    const increaseButton = document.getElementById('increase');
+    const currentMoves = document.getElementById('currentMoves');
     const maxGames = 100;
     let movesData = [];
+    let currentGame = 0;
 
     function loadMovesData() {
       const data = localStorage.getItem('movesData');
@@ -68,11 +78,13 @@
       });
     }
 
-    function addMove() {
+    function addGame() {
       if (movesData.length < maxGames) {
-        movesData.push(1);
+        movesData.push(0);
+        currentGame = movesData.length - 1;
         saveMovesData();
         displayMovesData();
+        updateCurrentMoves();
       } else {
         alert('最大局数に達しました。');
       }
@@ -80,15 +92,46 @@
 
     function reset() {
       movesData = [];
+      currentGame = 0;
       saveMovesData();
       displayMovesData();
+      updateCurrentMoves();
     }
 
-    addMoveButton.addEventListener('click', addMove);
+    function updateCurrentMoves() {
+      if (movesData[currentGame] !== undefined) {
+        currentMoves.textContent = movesData[currentGame];
+      } else {
+        currentMoves.textContent = '-';
+      }
+    }
+
+    function decreaseMove() {
+      if (currentGame >= 0 && movesData[currentGame] > 0) {
+        movesData[currentGame]--;
+        saveMovesData();
+        displayMovesData();
+        updateCurrentMoves();
+      }
+    }
+
+    function increaseMove() {
+      if (currentGame >= 0) {
+        movesData[currentGame]++;
+        saveMovesData();
+        displayMovesData();
+        updateCurrentMoves();
+      }
+    }
+
+    addGameButton.addEventListener('click', addGame);
     resetButton.addEventListener('click', reset);
+    decreaseButton.addEventListener('click', decreaseMove);
+    increaseButton.addEventListener('click', increaseMove);
 
     loadMovesData();
     displayMovesData();
+    updateCurrentMoves();
   </script>
 </body>
 </html>
