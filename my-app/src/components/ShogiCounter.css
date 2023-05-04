@@ -58,4 +58,9 @@
     padding: 4px;
     text-align: center;
   }
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
   

@@ -7,19 +7,17 @@ interface Game {
 }
 
 const ShogiCounter: React.FC = () => {
-  const [games, setGames] = useState<Game[]>([]);
-  const [totalMoves, setTotalMoves] = useState<number>(0);
-
-  useEffect(() => {
+  const [games, setGames] = useState<Game[]>(() => {
     const storedGames = localStorage.getItem('shogi-games');
-    if (storedGames) {
-      setGames(JSON.parse(storedGames));
-    }
-  }, []);
+    return storedGames ? JSON.parse(storedGames) : [];
+  });      
+  const [totalMoves, setTotalMoves] = useState<number>(0);
+  const [currentGame, setCurrentGame] = useState<Game | null>(null);
 
   useEffect(() => {
     localStorage.setItem('shogi-games', JSON.stringify(games));
     setTotalMoves(games.reduce((total, game) => total + game.moves, 0));
+    setCurrentGame(games.length > 0 ? games[games.length - 1] : null);
   }, [games]);
 
   const addGame = () => {
@@ -41,17 +39,20 @@ const ShogiCounter: React.FC = () => {
     setGames([...games]);
   };
 
+  const resetAllGames = () => {
+    setGames([]);
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (games.length === 0) return;
-      const latestGame = games[games.length - 1];
+      if (currentGame === null) return;
 
       if (e.code === 'Space') {
-        latestGame.moves++;
+        currentGame.moves++;
       } else if (e.code === 'ArrowLeft') {
-        latestGame.moves = Math.max(latestGame.moves - 1, 0);
+        currentGame.moves = Math.max(currentGame.moves - 1, 0);
       } else if (e.code === 'ArrowRight') {
-        latestGame.moves++;
+        currentGame.moves++;
       } else {
         return;
       }
@@ -62,16 +63,25 @@ const ShogiCounter: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [games]);
+  }, [games, currentGame]);
 
   return (
     <div className="shogi-counter">
       <h1>将棋の手数カウンター</h1>
       <div className="container">
-        <button onClick={addGame}>新しい局を追加</button>
-        <div className="actions">
-          <button onClick={resetLatestGame}>最新の局の手数を0にする</button>
+        <div className="button-container">
+          <button onClick={addGame}>新しい局を追加</button>
+          <button onClick={resetAllGames}>全ての局数情報を初期化</button>
+          {currentGame && (
+            <button onClick={resetLatestGame}>現在の局の手数を0にする</button>
+          )}
         </div>
+        {currentGame && (
+          <div className="current-game">
+            <h2>現在の局: {currentGame.id}</h2>
+            <p>手数: {currentGame.moves}</p>
+          </div>
+        )}
         <table>
           <thead>
             <tr>
@@ -87,17 +97,20 @@ const ShogiCounter: React.FC = () => {
                   <input
                     type="number"
                     value={game.moves}
-                    onChange={(e) => updateMoves(index, parseInt(e.target.value))}
+                    onChange={(e) => updateMoves(index, Number(e.target.value))}
                   />
                 </td>
-              </tr>
+                </tr>
             ))}
           </tbody>
         </table>
-        <p>総手数: {totalMoves}</p>
+        <div className="total-moves">
+          <h2>総手数: {totalMoves}</h2>
+        </div>
       </div>
     </div>
   );
+
 };
 
 export default ShogiCounter;
