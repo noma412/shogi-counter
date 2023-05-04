@@ -19,11 +19,15 @@
     th {
       background-color: #f2f2f2;
     }
+    input[type="number"] {
+      width: 60px;
+    }
   </style>
   <title>リアルタイム将棋手数カウントツール</title>
 </head>
 <body>
   <h1>リアルタイム将棋手数カウントツール</h1>
+  <h2>現在の局（最新の局）: <span id="currentGame">1</span></h2>
   <h2>総手数: <span id="totalMoves">0</span></h2>
   <table>
     <thead>
@@ -38,11 +42,14 @@
   </table>
   <button id="addGame">局追加</button>
   <button id="reset">リセット</button>
+  <button id="resetLatestMove">最新局の手数を0にする</button>
   <script>
     const movesTable = document.getElementById('movesTable');
     const addGameButton = document.getElementById('addGame');
     const resetButton = document.getElementById('reset');
+    const resetLatestMoveButton = document.getElementById('resetLatestMove');
     const totalMoves = document.getElementById('totalMoves');
+    const currentGameDisplay = document.getElementById('currentGame');
     const maxGames = 100;
     let movesData = [];
 
@@ -65,6 +72,10 @@
       totalMoves.textContent = getTotalMoves();
     }
 
+    function displayCurrentGame() {
+      currentGameDisplay.textContent = movesData.length;
+    }
+
     function displayMovesData() {
       movesTable.innerHTML = '';
       movesData.forEach((move, index) => {
@@ -74,6 +85,22 @@
         const actionsCell = document.createElement('td');
         const decreaseButton = document.createElement('button');
         const increaseButton = document.createElement('button');
+        const input = document.createElement('input');
+
+        input.type = 'number';
+        input.value = move;
+        input.min = 0;
+        input.onchange = () => {
+          const newMove = parseInt(input.value);
+          if (newMove >= 0) {
+            movesData[index] = newMove;
+            saveMovesData();
+            displayMovesData();
+            displayTotalMoves();
+          } else {
+            input.value = move;
+          }
+        };
 
         decreaseButton.textContent = '-';
         decreaseButton.onclick = () => {
@@ -94,8 +121,7 @@
         };
 
         gameNumberCell.textContent = index + 1;
-        moveCountCell.textContent = move;
-       
+        moveCountCell.appendChild(input);
         actionsCell.appendChild(decreaseButton);
         actionsCell.appendChild(increaseButton);
 
@@ -112,6 +138,7 @@
         saveMovesData();
         displayMovesData();
         displayTotalMoves();
+        displayCurrentGame();
       } else {
         alert('最大局数に達しました。');
       }
@@ -122,14 +149,54 @@
       saveMovesData();
       displayMovesData();
       displayTotalMoves();
+      displayCurrentGame();
+    }
+
+    function increaseLatestGameMove() {
+      if (movesData.length > 0) {
+        movesData[movesData.length - 1]++;
+        saveMovesData();
+        displayMovesData();
+        displayTotalMoves();
+      }
+    }
+
+    function decreaseLatestGameMove() {
+      if (movesData.length > 0 && movesData[movesData.length - 1] > 0) {
+        movesData[movesData.length - 1]--;
+        saveMovesData();
+        displayMovesData();
+        displayTotalMoves();
+      }
+    }
+
+    function resetLatestGameMove() {
+      if (movesData.length > 0) {
+        movesData[movesData.length - 1] = 0;
+        saveMovesData();
+        displayMovesData();
+        displayTotalMoves();
+      }
     }
 
     addGameButton.addEventListener('click', addGame);
     resetButton.addEventListener('click', reset);
+    resetLatestMoveButton.addEventListener('click', resetLatestGameMove);
 
     loadMovesData();
     displayMovesData();
     displayTotalMoves();
+    displayCurrentGame();
+
+    document.addEventListener('keydown', function (event) {
+      if (event.code === 'Space') {
+        increaseLatestGameMove();
+      } else if (event.code === 'ArrowLeft') {
+        decreaseLatestGameMove();
+      } else if (event.code === 'ArrowRight') {
+        increaseLatestGameMove();
+      }
+    });
   </script>
 </body>
 </html>
