@@ -24,34 +24,27 @@
 </head>
 <body>
   <h1>リアルタイム将棋手数カウントツール</h1>
-  <button id="addGame">局追加</button>
-  <button id="reset">リセット</button>
-  <div>
-    <h2>現在の局の手数</h2>
-    <button id="decrease">-</button>
-    <span id="currentMoves">0</span>
-    <button id="increase">+</button>
-  </div>
+  <h2>総手数: <span id="totalMoves">0</span></h2>
   <table>
     <thead>
       <tr>
         <th>局数</th>
         <th>手数</th>
+        <th>操作</th>
       </tr>
     </thead>
     <tbody id="movesTable">
     </tbody>
   </table>
+  <button id="addGame">局追加</button>
+  <button id="reset">リセット</button>
   <script>
     const movesTable = document.getElementById('movesTable');
     const addGameButton = document.getElementById('addGame');
     const resetButton = document.getElementById('reset');
-    const decreaseButton = document.getElementById('decrease');
-    const increaseButton = document.getElementById('increase');
-    const currentMoves = document.getElementById('currentMoves');
+    const totalMoves = document.getElementById('totalMoves');
     const maxGames = 100;
     let movesData = [];
-    let currentGame = 0;
 
     function loadMovesData() {
       const data = localStorage.getItem('movesData');
@@ -64,16 +57,51 @@
       localStorage.setItem('movesData', JSON.stringify(movesData));
     }
 
+    function getTotalMoves() {
+      return movesData.reduce((acc, cur) => acc + cur, 0);
+    }
+
+    function displayTotalMoves() {
+      totalMoves.textContent = getTotalMoves();
+    }
+
     function displayMovesData() {
       movesTable.innerHTML = '';
       movesData.forEach((move, index) => {
         const row = document.createElement('tr');
         const gameNumberCell = document.createElement('td');
         const moveCountCell = document.createElement('td');
+        const actionsCell = document.createElement('td');
+        const decreaseButton = document.createElement('button');
+        const increaseButton = document.createElement('button');
+
+        decreaseButton.textContent = '-';
+        decreaseButton.onclick = () => {
+          if (movesData[index] > 0) {
+            movesData[index]--;
+            saveMovesData();
+            displayMovesData();
+            displayTotalMoves();
+          }
+        };
+
+        increaseButton.textContent = '+';
+        increaseButton.onclick = () => {
+          movesData[index]++;
+          saveMovesData();
+          displayMovesData();
+          displayTotalMoves();
+        };
+
         gameNumberCell.textContent = index + 1;
         moveCountCell.textContent = move;
+       
+        actionsCell.appendChild(decreaseButton);
+        actionsCell.appendChild(increaseButton);
+
         row.appendChild(gameNumberCell);
         row.appendChild(moveCountCell);
+        row.appendChild(actionsCell);
         movesTable.appendChild(row);
       });
     }
@@ -81,10 +109,9 @@
     function addGame() {
       if (movesData.length < maxGames) {
         movesData.push(0);
-        currentGame = movesData.length - 1;
         saveMovesData();
         displayMovesData();
-        updateCurrentMoves();
+        displayTotalMoves();
       } else {
         alert('最大局数に達しました。');
       }
@@ -92,46 +119,17 @@
 
     function reset() {
       movesData = [];
-      currentGame = 0;
       saveMovesData();
       displayMovesData();
-      updateCurrentMoves();
-    }
-
-    function updateCurrentMoves() {
-      if (movesData[currentGame] !== undefined) {
-        currentMoves.textContent = movesData[currentGame];
-      } else {
-        currentMoves.textContent = '-';
-      }
-    }
-
-    function decreaseMove() {
-      if (currentGame >= 0 && movesData[currentGame] > 0) {
-        movesData[currentGame]--;
-        saveMovesData();
-        displayMovesData();
-        updateCurrentMoves();
-      }
-    }
-
-    function increaseMove() {
-      if (currentGame >= 0) {
-        movesData[currentGame]++;
-        saveMovesData();
-        displayMovesData();
-        updateCurrentMoves();
-      }
+      displayTotalMoves();
     }
 
     addGameButton.addEventListener('click', addGame);
     resetButton.addEventListener('click', reset);
-    decreaseButton.addEventListener('click', decreaseMove);
-    increaseButton.addEventListener('click', increaseMove);
 
     loadMovesData();
     displayMovesData();
-    updateCurrentMoves();
+    displayTotalMoves();
   </script>
 </body>
 </html>
