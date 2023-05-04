@@ -6,40 +6,74 @@
   <style>
     body {
       font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    table {
-      border-collapse: collapse;
+
+    h1 {
+      margin-top: 30px;
+      margin-bottom: 30px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 800px;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
       width: 100%;
+      margin-bottom: 30px;
     }
+
+    button {
+      font-size: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+
     th, td {
       border: 1px solid #ccc;
-      padding: 8px;
+      padding: 10px;
       text-align: center;
     }
-    th {
-      background-color: #f2f2f2;
-    }
-    input[type="number"] {
+
+    .move-input {
       width: 60px;
     }
   </style>
   <title>リアルタイム将棋手数カウントツール</title>
 </head>
 <body>
-  <h1>リアルタイム将棋手数カウントツール</h1>
-  <h2>現在の局（最新の局）: <span id="currentGame">1</span></h2>
-  <h2>総手数: <span id="totalMoves">0</span></h2>
-  <table>
-    <thead>
-      <tr>
-        <th>局数</th>
-        <th>手数</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody id="movesTable">
-    </tbody>
-  </table>
+    <h1>将棋の手数カウンター</h1>
+    <div class="container">
+      <div class="actions">
+        <button id="add-game">局追加</button>
+        <button id="reset">リセット</button>
+        <button id="reset-latest-move">最新局の手数を0にする</button>
+      </div>
+      <table id="moves-table">
+        <thead>
+          <tr>
+            <th>局</th>
+            <th>手数</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <p>総手数: <span id="total-moves">0</span></p>
+      <p>現在の局: <span id="current-game">0</span></p>
+    </div>
   <button id="addGame">局追加</button>
   <button id="reset">リセット</button>
   <button id="resetLatestMove">最新局の手数を0にする</button>
