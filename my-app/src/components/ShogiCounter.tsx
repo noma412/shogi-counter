@@ -1,94 +1,100 @@
-import React, { useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ShogiCounter.css';
 
-type Game = {
+interface Game {
+  id: number;
   moves: number;
-};
+}
 
 const ShogiCounter: React.FC = () => {
-  const [games, setGames] = useState<Game[]>(JSON.parse(localStorage.getItem('games') || '[]'));
+  const [games, setGames] = useState<Game[]>([]);
+  const [totalMoves, setTotalMoves] = useState<number>(0);
 
   useEffect(() => {
-    localStorage.setItem('games', JSON.stringify(games));
+    const storedGames = localStorage.getItem('shogi-games');
+    if (storedGames) {
+      setGames(JSON.parse(storedGames));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('shogi-games', JSON.stringify(games));
+    setTotalMoves(games.reduce((total, game) => total + game.moves, 0));
   }, [games]);
 
   const addGame = () => {
-    if (games.length < 100) {
-      setGames([...games, { moves: 0 }]);
-    }
+    const newGame: Game = {
+      id: games.length + 1,
+      moves: 0,
+    };
+    setGames([...games, newGame]);
   };
 
-  const reset = () => {
-    localStorage.removeItem('games');
-    setGames([]);
-  };
-
-  const resetLatestMove = () => {
-    if (games.length > 0) {
-      const updatedGames = [...games];
-      updatedGames[updatedGames.length - 1].moves = 0;
-      setGames(updatedGames);
-    }
-  };
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
-    const updatedGames = [...games];
-    updatedGames[index].moves = parseInt(e.target.value) || 0;
-    setGames(updatedGames);
-  };
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (games.length === 0) return;
-    const latestGame = games[games.length - 1];
-
-    if (e.code === 'Space') {
-      latestGame.moves++;
-    } else if (e.code === 'ArrowLeft') {
-      latestGame.moves = Math.max(latestGame.moves - 1, 0);
-    } else if (e.code === 'ArrowRight') {
-      latestGame.moves++;
-    } else {
-      return;
-    }
+  const updateMoves = (index: number, moves: number) => {
+    games[index].moves = moves;
     setGames([...games]);
   };
 
+  const resetLatestGame = () => {
+    if (games.length === 0) return;
+    games[games.length - 1].moves = 0;
+    setGames([...games]);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (games.length === 0) return;
+      const latestGame = games[games.length - 1];
+
+      if (e.code === 'Space') {
+        latestGame.moves++;
+      } else if (e.code === 'ArrowLeft') {
+        latestGame.moves = Math.max(latestGame.moves - 1, 0);
+      } else if (e.code === 'ArrowRight') {
+        latestGame.moves++;
+      } else {
+        return;
+      }
+      setGames([...games]);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [games]);
+
   return (
-    <div className="shogi-counter" onKeyDown={handleKeyDown} tabIndex={0}>
+    <div className="shogi-counter">
       <h1>将棋の手数カウンター</h1>
       <div className="container">
+        <button onClick={addGame}>新しい局を追加</button>
         <div className="actions">
-          <button onClick={addGame}>局追加</button>
-          <button onClick={reset}>リセット</button>
-          <button onClick={resetLatestMove}>最新局の手数を0にする</button>
+          <button onClick={resetLatestGame}>最新の局の手数を0にする</button>
         </div>
         <table>
           <thead>
             <tr>
               <th>局</th>
               <th>手数</th>
-              <th>操作</th>
             </tr>
           </thead>
           <tbody>
-            {games.map((game, i) => (
-              <tr key={i}>
-                <td>{i + 1}</td>
-                <td>{game.moves}</td>
+            {games.map((game, index) => (
+              <tr key={game.id}>
+                <td>{game.id}</td>
                 <td>
                   <input
                     type="number"
                     value={game.moves}
-                    onChange={(e) => handleInputChange(e, i)}
-                    min={0}
+                    onChange={(e) => updateMoves(index, parseInt(e.target.value))}
                   />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <p>総手数: {games.reduce((sum, game) => sum + game.moves, 0)}</p>
-        <p>現在の局: {games.length}</p>
+        <p>総手数: {totalMoves}</p>
       </div>
     </div>
   );
