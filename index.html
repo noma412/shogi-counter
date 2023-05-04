@@ -4,8 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    :root {
+      --pastel-blue: #b5c9e0;
+      --pastel-pink: #f7d1d6;
+      --pastel-green: #d1e7d9;
+    }
+
     body {
       font-family: sans-serif;
+      background-color: var(--pastel-blue);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -14,6 +21,8 @@
     h1 {
       margin-top: 30px;
       margin-bottom: 30px;
+      font-size: 36px;
+      color: #4a4a4a;
     }
 
     .container {
@@ -21,6 +30,10 @@
       flex-direction: column;
       align-items: center;
       max-width: 800px;
+      background-color: var(--pastel-green);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
     }
 
     .actions {
@@ -32,6 +45,16 @@
 
     button {
       font-size: 16px;
+      padding: 8px 16px;
+      background-color: var(--pastel-pink);
+      border: none;
+      border-radius: 5px;
+      color: #4a4a4a;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #f7b2b9;
     }
 
     table {
@@ -44,192 +67,110 @@
       border: 1px solid #ccc;
       padding: 10px;
       text-align: center;
+      background-color: white;
     }
 
     .move-input {
       width: 60px;
     }
   </style>
-  <title>リアルタイム将棋手数カウントツール</title>
 </head>
 <body>
-    <h1>将棋の手数カウンター</h1>
-    <div class="container">
-      <div class="actions">
-        <button id="add-game">局追加</button>
-        <button id="reset">リセット</button>
-        <button id="reset-latest-move">最新局の手数を0にする</button>
-      </div>
-      <table id="moves-table">
-        <thead>
-          <tr>
-            <th>局</th>
-            <th>手数</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-        </tbody>
-      </table>
-      <p>総手数: <span id="total-moves">0</span></p>
-      <p>現在の局: <span id="current-game">0</span></p>
+  <h1>将棋の手数カウンター</h1>
+  <div class="container">
+    <div class="actions">
+      <button id="add-game">局追加</button>
+      <button id="reset">リセット</button>
+      <button id="reset-latest-move">最新局の手数を0にする</button>
     </div>
-  <button id="addGame">局追加</button>
-  <button id="reset">リセット</button>
-  <button id="resetLatestMove">最新局の手数を0にする</button>
+    <table id="moves-table">
+      <thead>
+        <tr>
+          <th>局</th>
+          <th>手数</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <p>総手数: <span id="total-moves">0</span></p>
+    <p>現在の局: <span id="current-game">0</span></p>
+  </div>
+
   <script>
-    const movesTable = document.getElementById('movesTable');
-    const addGameButton = document.getElementById('addGame');
-    const resetButton = document.getElementById('reset');
-    const resetLatestMoveButton = document.getElementById('resetLatestMove');
-    const totalMoves = document.getElementById('totalMoves');
-    const currentGameDisplay = document.getElementById('currentGame');
-    const maxGames = 100;
-    let movesData = [];
+    const games = JSON.parse(localStorage.getItem('games')) || [];
+    const movesTable = document.getElementById('moves-table');
+    const tbody = movesTable.getElementsByTagName('tbody')[0];
+    const totalMoves = document.getElementById('total-moves');
+    const currentGame = document.getElementById('current-game');
+    const addGameBtn = document.getElementById('add-game');
+    const resetBtn = document.getElementById('reset');
+    const resetLatestMoveBtn = document.getElementById('reset-latest-move');
 
-    function loadMovesData() {
-      const data = localStorage.getItem('movesData');
-      if (data) {
-        movesData = JSON.parse(data);
-      }
-    }
-
-    function saveMovesData() {
-      localStorage.setItem('movesData', JSON.stringify(movesData));
-    }
-
-    function getTotalMoves() {
-      return movesData.reduce((acc, cur) => acc + cur, 0);
-    }
-
-    function displayTotalMoves() {
-      totalMoves.textContent = getTotalMoves();
-    }
-
-    function displayCurrentGame() {
-      currentGameDisplay.textContent = movesData.length;
-    }
-
-    function displayMovesData() {
-      movesTable.innerHTML = '';
-      movesData.forEach((move, index) => {
-        const row = document.createElement('tr');
-        const gameNumberCell = document.createElement('td');
-        const moveCountCell = document.createElement('td');
-        const actionsCell = document.createElement('td');
-        const decreaseButton = document.createElement('button');
-        const increaseButton = document.createElement('button');
+    const updateTable = () => {
+      tbody.innerHTML = '';
+      let sum = 0;
+      games.forEach((game, i) => {
+        sum += game.moves;
+        const row = tbody.insertRow();
+        row.insertCell().textContent = i + 1;
+        row.insertCell().textContent = game.moves;
+        const cell = row.insertCell();
         const input = document.createElement('input');
-
         input.type = 'number';
-        input.value = move;
+        input.value = game.moves;
+        input.className = 'move-input';
         input.min = 0;
-        input.onchange = () => {
-          const newMove = parseInt(input.value);
-          if (newMove >= 0) {
-            movesData[index] = newMove;
-            saveMovesData();
-            displayMovesData();
-            displayTotalMoves();
-          } else {
-            input.value = move;
-          }
-        };
-
-        decreaseButton.textContent = '-';
-        decreaseButton.onclick = () => {
-          if (movesData[index] > 0) {
-            movesData[index]--;
-            saveMovesData();
-            displayMovesData();
-            displayTotalMoves();
-          }
-        };
-
-        increaseButton.textContent = '+';
-        increaseButton.onclick = () => {
-          movesData[index]++;
-          saveMovesData();
-          displayMovesData();
-          displayTotalMoves();
-        };
-
-        gameNumberCell.textContent = index + 1;
-        moveCountCell.appendChild(input);
-        actionsCell.appendChild(decreaseButton);
-        actionsCell.appendChild(increaseButton);
-
-        row.appendChild(gameNumberCell);
-        row.appendChild(moveCountCell);
-        row.appendChild(actionsCell);
-        movesTable.appendChild(row);
+        input.addEventListener('change', (e) => {
+          game.moves = parseInt(e.target.value) || 0;
+          localStorage.setItem('games', JSON.stringify(games));
+          updateTable();
+        });
+        cell.appendChild(input);
       });
-    }
+      totalMoves.textContent = sum;
+      currentGame.textContent = games.length;
+    };
 
-    function addGame() {
-      if (movesData.length < maxGames) {
-        movesData.push(0);
-        saveMovesData();
-        displayMovesData();
-        displayTotalMoves();
-        displayCurrentGame();
+    updateTable();
+
+    addGameBtn.addEventListener('click', () => {
+      if (games.length < 100) {
+        games.push({ moves: 0 });
+        localStorage.setItem('games', JSON.stringify(games));
+        updateTable();
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      localStorage.removeItem('games');
+      games.length = 0;
+      updateTable();
+    });
+
+    resetLatestMoveBtn.addEventListener('click', () => {
+      if (games.length > 0) {
+        games[games.length - 1].moves = 0;
+        localStorage.setItem('games', JSON.stringify(games));
+        updateTable();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (games.length === 0) return;
+      const latestGame = games[games.length - 1];
+      if (e.code === 'Space') {
+        latestGame.moves++;
+      } else if (e.code === 'ArrowLeft') {
+        latestGame.moves = Math.max(latestGame.moves - 1, 0);
+      } else if (e.code === 'ArrowRight') {
+        latestGame.moves++;
       } else {
-        alert('最大局数に達しました。');
+        return;
       }
-    }
-
-    function reset() {
-      movesData = [];
-      saveMovesData();
-      displayMovesData();
-      displayTotalMoves();
-      displayCurrentGame();
-    }
-
-    function increaseLatestGameMove() {
-      if (movesData.length > 0) {
-        movesData[movesData.length - 1]++;
-        saveMovesData();
-        displayMovesData();
-        displayTotalMoves();
-      }
-    }
-
-    function decreaseLatestGameMove() {
-      if (movesData.length > 0 && movesData[movesData.length - 1] > 0) {
-        movesData[movesData.length - 1]--;
-        saveMovesData();
-        displayMovesData();
-        displayTotalMoves();
-      }
-    }
-
-    function resetLatestGameMove() {
-      if (movesData.length > 0) {
-        movesData[movesData.length - 1] = 0;
-        saveMovesData();
-        displayMovesData();
-        displayTotalMoves();
-      }
-    }
-
-    addGameButton.addEventListener('click', addGame);
-    resetButton.addEventListener('click', reset);
-    resetLatestMoveButton.addEventListener('click', resetLatestGameMove);
-
-    loadMovesData();
-    displayMovesData();
-    displayTotalMoves();
-    displayCurrentGame();
-
-    document.addEventListener('keydown', function (event) {
-      if (event.code === 'Space') {
-        increaseLatestGameMove();
-      } else if (event.code === 'ArrowLeft') {
-        decreaseLatestGameMove();
-      } else if (event.code === 'ArrowRight') {
-        increaseLatestGameMove();
-      }
+      localStorage.setItem('games', JSON.stringify(games));
+      updateTable();
     });
   </script>
 </body>
