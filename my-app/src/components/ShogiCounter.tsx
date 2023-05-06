@@ -21,6 +21,10 @@ const ShogiCounter: React.FC = () => {
   const arrowRightPressed = useKeyPress('ArrowRight');
 
   useEffect(() => {
+    localStorage.setItem('games', JSON.stringify(games));
+  }, [games]);
+
+  useEffect(() => {
     if (games.length === 0) return;
 
     const latestGameIndex = games.length - 1;
@@ -62,6 +66,11 @@ const ShogiCounter: React.FC = () => {
     }
   };
 
+  const getStoredGames = () => {
+    const storedGames = localStorage.getItem('games');
+    return storedGames ? JSON.parse(storedGames) : [];
+  };
+  
   return (
     <div className="ShogiCounter">
       <h1>将棋の手数カウンター</h1>
