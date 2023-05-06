@@ -63,4 +63,87 @@
     justify-content: space-between;
     margin-bottom: 1rem;
   }
+
+  /* ShogiCounter.module.css */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Arial', sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .title {
+    font-size: 2rem;
+    margin: 1rem;
+    color: #333;
+  }
+  
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th,
+  .table td {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    text-align: center;
+  }
+  
+  .table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+  }
+  
+  .table tr:nth-child(even) {
+    background-color: #f8f8f8;
+  }
+  
+  .total-moves {
+    font-size: 1.5rem;
+    margin: 1rem;
+    color: #666;
+  }
+  
+  .buttons-container {
+    display: flex;
+    justify-content: center;
+    margin: 1rem;
+  }
+  
+  .button {
+    background-color: #3d8ee7;
+    border: none;
+    border-radius: 3px;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 0.5rem;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s;
+  }
+  
+  .button:hover {
+    background-color: #1a6dc8;
+  }
+  
+  .button:active {
+    background-color: #0d4d8a;
+  }
+  
+  .input {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 1rem;
+    margin: 0.5rem;
+    padding: 0.5rem;
+    width: 50px;
+  }
   
