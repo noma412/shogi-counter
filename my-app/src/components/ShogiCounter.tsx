@@ -1,16 +1,47 @@
-import React, { useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
+// ShogiCounter.tsx
+import React, { useState, useEffect } from 'react';
 import './ShogiCounter.css';
+import { useKeyPress } from './useKeyPress';
 
 type Game = {
   moves: number;
 };
 
 const ShogiCounter: React.FC = () => {
-  const [games, setGames] = useState<Game[]>(JSON.parse(localStorage.getItem('games') || '[]'));
+  const [games, setGames] = useState<Game[]>(() => {
+    const savedGames = localStorage.getItem('games');
+    return savedGames ? JSON.parse(savedGames) : [];
+  });
+
+  const totalMoves = games.reduce((sum, game) => sum + game.moves, 0);
+  const currentGame = games.length;
+
+  const spacePressed = useKeyPress('Space');
+  const arrowLeftPressed = useKeyPress('ArrowLeft');
+  const arrowRightPressed = useKeyPress('ArrowRight');
 
   useEffect(() => {
-    localStorage.setItem('games', JSON.stringify(games));
-  }, [games]);
+    if (games.length === 0) return;
+
+    const latestGameIndex = games.length - 1;
+    const updatedGames = [...games];
+
+    if (spacePressed || arrowRightPressed) {
+      updatedGames[latestGameIndex].moves++;
+    } else if (arrowLeftPressed) {
+      updatedGames[latestGameIndex].moves = Math.max(updatedGames[latestGameIndex].moves - 1, 0);
+    } else {
+      return;
+    }
+
+    setGames(updatedGames);
+  }, [spacePressed, arrowLeftPressed, arrowRightPressed]);
+
+  const updateMoves = (index: number, newMoves: number) => {
+    const updatedGames = [...games];
+    updatedGames[index].moves = newMoves;
+    setGames(updatedGames);
+  };
 
   const addGame = () => {
     if (games.length < 100) {
@@ -31,30 +62,8 @@ const ShogiCounter: React.FC = () => {
     }
   };
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
-    const updatedGames = [...games];
-    updatedGames[index].moves = parseInt(e.target.value) || 0;
-    setGames(updatedGames);
-  };
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (games.length === 0) return;
-    const latestGame = games[games.length - 1];
-
-    if (e.code === 'Space') {
-      latestGame.moves++;
-    } else if (e.code === 'ArrowLeft') {
-      latestGame.moves = Math.max(latestGame.moves - 1, 0);
-    } else if (e.code === 'ArrowRight') {
-      latestGame.moves++;
-    } else {
-      return;
-    }
-    setGames([...games]);
-  };
-
   return (
-    <div className="shogi-counter" onKeyDown={handleKeyDown} tabIndex={0}>
+    <div className="ShogiCounter">
       <h1>将棋の手数カウンター</h1>
       <div className="container">
         <div className="actions">
@@ -79,16 +88,19 @@ const ShogiCounter: React.FC = () => {
                   <input
                     type="number"
                     value={game.moves}
-                    onChange={(e) => handleInputChange(e, i)}
+                    className="move-input"
                     min={0}
+                    onChange={(e) =>
+                      updateMoves(i, parseInt(e.target.value) || 0)
+                    }
                   />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <p>総手数: {games.reduce((sum, game) => sum + game.moves, 0)}</p>
-        <p>現在の局: {games.length}</p>
+        <p>総手数: {totalMoves}</p>
+        <p>現在の局: {currentGame}</p>
       </div>
     </div>
   );
